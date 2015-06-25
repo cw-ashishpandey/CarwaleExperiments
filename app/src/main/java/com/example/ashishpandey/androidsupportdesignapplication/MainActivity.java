@@ -26,6 +26,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Adapter;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,NavigationView.OnNavigationItemSelectedListener,TabLayout.OnTabSelectedListener,ViewPager.OnPageChangeListener
 {
-
+    private static final long RIPPLE_DURATION = 250;
     DrawerLayout drawerLayout;
     CollapsingToolbarLayout collapsingToolbarLayout;
     Toolbar toolbar;
@@ -45,17 +46,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ViewPager viewPager;
     int drawerState = 0;
 
+    private RelativeLayout root;
+    private ImageView toolbarIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        root = (RelativeLayout)findViewById(R.id.mainLayout);
+        toolbarIcon = (ImageView) findViewById(R.id.content_hamburger);
         setupNavigationView();
         setupToolbar();
         setUpViewPager();
         setupTablayout();
         //setupCollapsingToolbarLayout();
         setupFab();
+
+        toolbarIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(drawerState==0) {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                    drawerState = 1;
+                    setHomeButtonAnimation();
+                }
+                else if(drawerState==1)
+                {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                    drawerState = 0;
+                    setHomeButtonAnimation();
+                }
+            }
+        });
+
 
 
     }
@@ -88,12 +111,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(drawerState==0) {
                     drawerLayout.openDrawer(GravityCompat.START);
                     drawerState = 1;
-                    //setHomeButtonAnimation(iv);
+                    setHomeButtonAnimation();
                 }
                 else if(drawerState==1)
                 {
                     drawerLayout.closeDrawer(GravityCompat.START);
                     drawerState = 0;
+                    setHomeButtonAnimation();
                 }
 
                 return true;
@@ -128,18 +152,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setSupportActionBar(toolbar);
         // Show menu icon
         final ActionBar ab = getSupportActionBar();
-        ab.setHomeAsUpIndicator(R.drawable.menu_icon);
-        ab.setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(null);
+        //ab.setHomeAsUpIndicator(R.drawable.menu_icon);
+        //ab.setDisplayHomeAsUpEnabled(true);
         setAnimationForToolbar(toolbar);
+
+//        View guillotineMenu = LayoutInflater.from(this).inflate(R.layout.guillotine, null);
+//        root.addView(guillotineMenu);
+//
+//        new GuillotineAnimation.GuillotineBuilder(guillotineMenu, guillotineMenu.findViewById(R.id.guillotine_hamburger), findViewById(R.id.content_hamburger))
+//                .setStartDelay(RIPPLE_DURATION)
+//                .setActionBarViewForAnimation(toolbar)
+//                .build();
 
     }
 
-    private void setHomeButtonAnimation(ImageView imageview)
+    private void setHomeButtonAnimation()
     {
         //LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         //ImageView imageView = (ImageView)inflater.inflate(android.R.id.home,null);
         Animation animation = AnimationUtils.loadAnimation(this,R.anim.rotation);
-        imageview.startAnimation(animation);
+        toolbarIcon.startAnimation(animation);
+        if(drawerState==0)
+        toolbarIcon.setBackground(getResources().getDrawable(R.drawable.ic_menu_90));
+        else if(drawerState==1)
+            toolbarIcon.setBackground(getResources().getDrawable(R.drawable.menu_icon));
     }
 
     private void setAnimationForToolbar(Toolbar toolbar){
@@ -149,18 +186,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         toolbar.setAlpha(0);
         toolbar.setTranslationY(-300);
 
-        toolbar.animate().setDuration(500).translationY(0).alpha(1);
+        toolbar.animate().setDuration(300).translationY(0).alpha(1);
 
 /* For loop animates toolbar's child elements to give a nice parallax effect */
         for(int i = 0; i < noOfChild; i++ ){
             view = toolbar.getChildAt(i);
             view.setTranslationY(-300);
-            view.animate().setStartDelay(900).setDuration(1000).translationY(0);
+            view.animate().setStartDelay(200).setDuration(500).translationY(0);
         }
     }
 
     private void setupTablayout(){
-        ///tabLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolLayout);
+        // tabLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolLayout);
        // tabLayout.setTitle("My Application");
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
